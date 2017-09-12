@@ -5,13 +5,23 @@ import java.util.List;
 public class Block {
 	private List<String> sourceLines;
 	private BLOCK_TYPE type;
-	private Block subBlock;
+	private List<Block> subBlock;
+	private Integer tabCount;
 
-	public Block getSubBlock() {
+	public Integer getTabCount() {
+		return tabCount;
+	}
+
+	public void setTabCount(Integer tabCount) {
+		this.tabCount = tabCount;
+	}
+
+
+	public List<Block> getSubBlock() {
 		return subBlock;
 	}
 
-	public void setSubBlock(Block subBlock) {
+	public void setSubBlock(List<Block> subBlock) {
 		this.subBlock = subBlock;
 	}
 
