@@ -3,11 +3,18 @@ package org.leeyaf.md;
 import java.util.List;
 
 public class Block {
-	private List<String> sourceLines;
+	private List<String> source;
 	private BLOCK_TYPE type;
 	private List<Block> subBlock;
 	private Integer tabCount;
-
+	
+	public Block(){}
+	
+	public Block(List<String> sourceLines,BLOCK_TYPE type){
+		this.source=sourceLines;
+		this.type=type;
+	}
+	
 	public Integer getTabCount() {
 		return tabCount;
 	}
@@ -26,11 +33,11 @@ public class Block {
 	}
 
 	public List<String> getSourceLines() {
-		return sourceLines;
+		return source;
 	}
 
 	public void setSourceLines(List<String> sourceLines) {
-		this.sourceLines = sourceLines;
+		this.source = sourceLines;
 	}
 
 	public BLOCK_TYPE getType() {
@@ -47,7 +54,6 @@ public class Block {
 		BLOCKQUOTES,
 		CODE,
 		TASK_LIST,
-		TABLES,
 		H1,
 		H2,
 		H3,
@@ -55,6 +61,11 @@ public class Block {
 		H5,
 		H6,
 		P,
-		HR;
+		HR,
+		TABLE,
+		THEAD,
+		TH,
+		TBODY,
+		TD;
 	}
 }
