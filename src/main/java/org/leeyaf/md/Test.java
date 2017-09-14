@@ -43,47 +43,17 @@ public class Test {
 				Block lastBlock=blocks.size()>0?blocks.get(blocks.size()-1):null;
 				int lineLength=line.length();
 				if(line.charAt(0)=='#'&&line.charAt(1)==' '){
-					Block bigBlock=new Block();
-					List<String> sourceLines=new ArrayList<>();
-					bigBlock.setSourceLines(sourceLines);
-					sourceLines.add(line);
-					bigBlock.setType(BLOCK_TYPE.H1);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H1));
 				}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)==' '){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.H2);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H2));
 				}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)==' '){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.H3);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H3));
 				}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)==' '){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.H4);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H4));
 				}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)==' '){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.H5);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H5));
 				}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)=='#'&&line.charAt(6)==' '){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.H6);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line, BLOCK_TYPE.H6));
 				}else if((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')||(trimedLine.charAt(0)=='1'&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' ')){
 					blockType=trimedLine.charAt(0)=='*'?BLOCK_TYPE.UNORDERED_LIST:BLOCK_TYPE.ORDERED_LIST;
 					char[] lineChars=line.toCharArray();
@@ -101,128 +71,98 @@ public class Test {
 							if(subBlocks!=null){
 								Block lastSubBlock=subBlocks.get(subBlocks.size()-1);
 								if(lastSubBlock.getTabCount()==tabCount){
-									List<String> sourceLines=new ArrayList<>();
-									sourceLines.add(line);
-									Block block=new Block(sourceLines, blockType);
-									block.setTabCount(tabCount);
-									subBlocks.add(block);
+									subBlocks.add(new Block(line, null,null,tabCount));
 									break;
 								}else{
 									rootBlock=lastSubBlock;
 								}
 							}else{
-								List<Block> childrenBlocks=new ArrayList<>();
-								Block block=new Block();
-								block.setTabCount(tabCount);
-								block.setType(blockType);
-								List<String> sourceLines=new ArrayList<>();
-								block.setSourceLines(sourceLines);
-								sourceLines.add(line);
-								rootBlock.setSubBlock(childrenBlocks);
-								childrenBlocks.add(block);
+								rootBlock.setType(blockType);
+								rootBlock.setSubBlock(new ArrayList<Block>());
+								rootBlock.getSubBlock().add(new Block(line,null,null,tabCount));
 								break;
 							}
 						}
 					}else{
-						Block rootBlock=new Block();
-						rootBlock.setType(blockType);
-						rootBlock.setTabCount(-1);
-						
-						List<String> sourceLines=new ArrayList<>();
-						sourceLines.add(line);
-						
-						Block subBlock=new Block(sourceLines, blockType);
-						subBlock.setTabCount(0);
-						
-						List<Block> subBlocks=new ArrayList<>();
-						subBlocks.add(subBlock);
-						
-						rootBlock.setSubBlock(subBlocks);
-						
+						Block rootBlock=new Block(null,blockType,new ArrayList<Block>(),-1);
+						rootBlock.getSubBlock().add(new Block(line, null,null,0));
 						blocks.add(rootBlock);
 					}
 				}else if(line.charAt(0)=='-'&&line.charAt(1)=='-'&&line.charAt(2)=='-'){
-					Block bigBlock=new Block();
-					bigBlock.setType(BLOCK_TYPE.HR);
-					List<String> blockLines=new ArrayList<>();
-					blockLines.add(line);
-					bigBlock.setSourceLines(blockLines);
-					blocks.add(bigBlock);
+					blocks.add(new Block(line,BLOCK_TYPE.HR));
 				}else if(line.charAt(0)=='>'&&line.charAt(1)==' '){
 					blockType=BLOCK_TYPE.BLOCKQUOTES;
 					if(lastBlock!=null&&lastBlock.getType()==blockType){
-						lastBlock.getSourceLines().add(line);
+						lastBlock.getSubBlock().add(new Block(line,null));
 					}else{
-						Block bigBlock=new Block();
-						bigBlock.setType(blockType);
-						List<String> blockLines=new ArrayList<>();
-						blockLines.add(line);
-						bigBlock.setSourceLines(blockLines);
-						blocks.add(bigBlock);
+						Block rootBlock=new Block(null, BLOCK_TYPE.BLOCKQUOTES, new ArrayList<Block>());
+						rootBlock.getSubBlock().add(new Block(line,null));
+						blocks.add(rootBlock);
 					}
 				}else if(lineLength>2&&line.charAt(0)=='`'&&line.charAt(1)=='`'&&line.charAt(2)=='`'){
 					blockType=BLOCK_TYPE.CODE;
 					if(!codeLock){
 						codeLock=true;
-						Block bigBlock=new Block();
-						bigBlock.setType(blockType);
-						List<String> blockLines=new ArrayList<>();
-						blockLines.add(line);
-						bigBlock.setSourceLines(blockLines);
-						blocks.add(bigBlock);
+						Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
+						rootBlock.getSubBlock().add(new Block(line, null));
+						blocks.add(rootBlock);
 					}else{
 						codeLock=false;
-						lastBlock.getSourceLines().add(line);
+						lastBlock.getSubBlock().add(new Block(line, null));
 					}
 				}else if(lineLength>5&&line.charAt(0)=='-'&&line.charAt(1)==' '&&line.charAt(2)=='['&&(line.charAt(3)==' '||line.charAt(3)=='x')&&line.charAt(4)==']'&&line.charAt(5)==' '){
 					blockType=BLOCK_TYPE.TASK_LIST;
 					if(lastBlock.getType()==blockType){
-						lastBlock.getSourceLines().add(line);
+						lastBlock.getSubBlock().add(new Block(line, null));
 					}else{
-						Block bigBlock=new Block();
-						bigBlock.setType(blockType);
-						List<String> blockLines=new ArrayList<>();
-						blockLines.add(line);
-						bigBlock.setSourceLines(blockLines);
-						blocks.add(bigBlock);
+						Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
+						rootBlock.getSubBlock().add(new Block(line, null));
+						blocks.add(rootBlock);
 					}
 				}else if(line.indexOf("|")>-1){
 					blockType=BLOCK_TYPE.TABLE;
 					if(lastBlock.getType()==blockType){
-						lastBlock.getSourceLines().add(line);
+						if(line.indexOf("---")>-1){
+							Block tbodyBlock=new Block(null,BLOCK_TYPE.TBODY,new ArrayList<Block>());
+							lastBlock.getSubBlock().add(tbodyBlock);
+						}else{
+							Block rootBlock=lastBlock.getSubBlock().get(lastBlock.getSubBlock().size()-1);
+							Block trBlock=new Block(null,BLOCK_TYPE.TR,new ArrayList<Block>());
+							
+							String[] tds=line.split("\\|");
+							for (String td : tds) {
+								if(td.length()>0){
+									trBlock.getSubBlock().add(new Block(td,BLOCK_TYPE.TD));	
+								}
+							}
+							rootBlock.getSubBlock().add(trBlock);
+						}
 					}else{
-						List<String> blockLines=new ArrayList<>();
-						blockLines.add(line);
-						Block b=new Block(blockLines, blockType);
-						blocks.add(b);
+						Block tableBlock=new Block(null, blockType,new ArrayList<Block>());
+						Block theadBlock=new Block(null,BLOCK_TYPE.THEAD,new ArrayList<Block>());
+						Block trBlock=new Block(null, BLOCK_TYPE.TR,new ArrayList<Block>());
+						
+						String[] ths=line.split("\\|");
+						for (String th : ths) {
+							if(th.length()>0){
+								trBlock.getSubBlock().add(new Block(th,BLOCK_TYPE.TH));	
+							}
+						}
+						theadBlock.getSubBlock().add(trBlock);
+						tableBlock.getSubBlock().add(theadBlock);
+						
+						blocks.add(tableBlock);
 					}
 				}else{
 					if(codeLock){
-						lastBlock.getSourceLines().add(line);
+						Block subBlock=new Block(line, null);
+						lastBlock.getSubBlock().add(subBlock);
 					}else{
-						Block bigBlock=new Block();
-						List<String> sourceLines=new ArrayList<>();
-						bigBlock.setSourceLines(sourceLines);
-						sourceLines.add(line);
-						bigBlock.setType(blockType);
-						blocks.add(bigBlock);
+						blocks.add(new Block(line,BLOCK_TYPE.P));
 					}
 				}
 				lastLineIsEmpty=false;
 			}
-//			for (Block bigBlock : blocks) {
-//				System.out.println("["+bigBlock.getType().name()+"]:"+(bigBlock.getTabCount()==null?"":bigBlock.getTabCount()));
-//				for (String line : bigBlock.getSourceLines()) {
-//					System.out.println(line);
-//				}
-//				while(bigBlock.getSubBlock()!=null){
-//					bigBlock=bigBlock.getSubBlock();
-//					System.out.println("["+bigBlock.getType().name()+"]:"+(bigBlock.getTabCount()==null?"":bigBlock.getTabCount()));
-//					for (String line : bigBlock.getSourceLines()) {
-//						System.out.println(line);
-//					}
-//				}
-//			}
 			System.out.println("------------blocks------------");
 			System.out.println(JacksonUtil.obj2json(blocks));
 		} catch (Exception e) {
