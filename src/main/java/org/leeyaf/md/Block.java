@@ -7,6 +7,7 @@ public class Block {
 	private BLOCK_TYPE type;
 	private List<Block> subBlock;
 	private Integer tabCount;
+	private List<LineBlock> lineBlocks;
 	
 	public Block(){}
 	
@@ -26,6 +27,14 @@ public class Block {
 		this.type = type;
 		this.subBlock = subBlock;
 		this.tabCount = tabCount;
+	}
+
+	public List<LineBlock> getLineBlocks() {
+		return lineBlocks;
+	}
+
+	public void setLineBlocks(List<LineBlock> lineBlocks) {
+		this.lineBlocks = lineBlocks;
 	}
 
 	public String getSource() {
@@ -61,19 +70,19 @@ public class Block {
 	}
 
 	enum BLOCK_TYPE{
-		UNORDERED_LIST,
-		ORDERED_LIST,
-		BLOCKQUOTES,
-		CODE,
-		TASK_LIST,
+		P,
 		H1,
 		H2,
 		H3,
 		H4,
 		H5,
 		H6,
-		P,
 		HR,
+		CODE,
+		BLOCKQUOTES,
+		UNORDERED_LIST,
+		ORDERED_LIST,
+		TASK_LIST,
 		TABLE,
 		TR,
 		THEAD,
