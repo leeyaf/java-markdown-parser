@@ -21,6 +21,7 @@ class BlockParser {
 		boolean codeLock=false;
 		boolean lastLineIsEmpty=false;
 		StringBuilder sb=new StringBuilder();
+		int lastTabCount=0;
 		for (int i = 0; i < lines.size(); i++) {
 			sb.setLength(0);
 			String line=lines.get(i);
@@ -78,34 +79,26 @@ class BlockParser {
 					
 					if(lastBlock!=null&&!lastLineIsEmpty&&lastBlock.getType()==blockType){
 						Block rootBlock=lastBlock;
-						for (int j = 0; j <= tabCount; j++) {
+						for (int j = 0; j <= (lastTabCount-tabCount); j++) {
 							List<Block> subBlocks=rootBlock.getSubBlock();
-							if(subBlocks!=null){
-								Block lastSubBlock=subBlocks.get(subBlocks.size()-1);
-								if(lastSubBlock.getTabCount()==tabCount){
-									lineParser.parse(trimedLine.substring(2), sb);
-									Block b=new Block(sb.toString(), null,null,tabCount);
-									subBlocks.add(b);
-									break;
-								}else{
-									rootBlock=lastSubBlock;
-								}
-							}else{
+							if(subBlocks==null){
 								rootBlock.setType(blockType);
-								rootBlock.setSubBlock(new ArrayList<Block>());
-								lineParser.parse(trimedLine.substring(2), sb);
-								Block b=new Block(sb.toString(),null,null,tabCount);
-								rootBlock.getSubBlock().add(b);
-								break;
+								subBlocks=new ArrayList<>();
+								rootBlock.setSubBlock(subBlocks);
+							}else if(subBlocks.get(subBlocks.size()-1).getTabCount()!=tabCount){
+								rootBlock=subBlocks.get(subBlocks.size()-1);
+								continue;
 							}
+							lineParser.parse(trimedLine.substring(2), sb);
+							subBlocks.add(new Block(sb.toString(), null,null,tabCount));
 						}
 					}else{
 						Block rootBlock=new Block(null,blockType,new ArrayList<Block>(),-1);
 						lineParser.parse(trimedLine.substring(2), sb);
-						Block b=new Block(sb.toString(), null,null,0);
-						rootBlock.getSubBlock().add(b);
+						rootBlock.getSubBlock().add(new Block(sb.toString(), null,null,tabCount));
 						blocks.add(rootBlock);
 					}
+					lastTabCount=tabCount;
 				}else if(lineLength>3&&line.charAt(0)=='-'&&line.charAt(1)=='-'&&line.charAt(2)=='-'){
 					sb.append("<hr/>");
 					blocks.add(new Block(sb.toString(),BLOCK_TYPE.HR));
