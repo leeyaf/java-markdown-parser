@@ -38,22 +38,36 @@ class LineParser {
 					sb.append(c);
 				}
 			}else if(c=='['){
-				String temp=source.substring(i);
-				temp=temp.substring(0, temp.indexOf(")")+1);
-				String title=temp.substring(1,temp.indexOf("]"));
-				String href=temp.substring(temp.indexOf("(")+1,temp.length()-1);
-				sb.append("<a href=\"").append(href).append("\">").append(title).append("</a>");
-				i+=temp.length()-1;
-			}else if(c==':'){
+				int len=0;
 				String temp=source.substring(i+1);
-				int ep=0;
-				if((ep=temp.indexOf(":"))>-1){
-					temp=temp.substring(0, ep);
-					sb.append("<em>").append(temp).append("</em>");
-					i+=temp.length()+1;
+				int tep=temp.indexOf("]");
+				String title=null;
+				if(tep>-1){
+					title=temp.substring(0,tep);
+					len=title.length();
 				}else{
 					sb.append(c);
 				}
+				String href=null;
+				temp=temp.substring(tep+1);
+				if(temp.charAt(0)=='('){
+					int hep=temp.indexOf(")");
+					if(hep>-1){
+						href=temp.substring(1,temp.indexOf(")"));
+						len+=href.length();
+					}else{
+						sb.append(c);
+					}
+				}else{
+					sb.append(c);
+				}
+				sb.append("<a href=\"").append(href).append("\">").append(title).append("</a>");
+				i+=len+4;
+			}else if((i+1)<cs.length&&c==':'&&isEmoji(cs[i+1])){
+				sb.append("<em>");
+				String subSource=findUntil(source.substring(i+1), LINE_BLOCK_TYPE.EMOJI);
+				sb.append("</em>");
+				i+=subSource.length()+2;
 			}
 			else{
 				sb.append(c);
@@ -86,10 +100,18 @@ class LineParser {
 			}else if(type==LINE_BLOCK_TYPE.INLINE_CODE){
 				if(cs[i]=='`') break;
 				else sb.append(cs[i]);
+			}else if(type==LINE_BLOCK_TYPE.EMOJI){
+				if(isEmoji(cs[i])){
+					sb.append(cs[i]);
+				}else break;
 			}else{
 				sb.append(cs[i]);
 			}
 		}
 		return sb.toString();
+	}
+	
+	private boolean isEmoji(char c){
+		return c==45||c>47&&c<58||c>96&&c<123;
 	}
 }

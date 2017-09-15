@@ -10,7 +10,8 @@ import java.util.List;
 public class Parser {
 	private BlockParser blockParser=new BlockParser();
 	
-	public String parse(File file) throws Exception{
+	public String parse(File file){
+		String parsed=null;
 		try {
 			List<String> lines=new ArrayList<>();
 			FileReader fr=new FileReader(file);
@@ -22,19 +23,22 @@ public class Parser {
 			br.close();
 			fr.close();
 			
-			return blockParser.parser(lines);
+			parsed=blockParser.parser(lines);
 		} catch (Exception e) {
-			throw e;
+			e.printStackTrace();
 		}
+		return parsed;
 	}
 	
-	public String parse(String source) throws Exception{
+	public String parse(String source){
+		String parsed=null;
 		try {
 			String[] ls=source.split("\n");
 			List<String> lines=Arrays.asList(ls);
-			return blockParser.parser(lines);
+			parsed=blockParser.parser(lines);
 		} catch (Exception e) {
-			throw e;
+			e.printStackTrace();
 		}
+		return parsed;
 	}
 }

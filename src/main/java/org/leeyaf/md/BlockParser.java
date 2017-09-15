@@ -72,6 +72,10 @@ class BlockParser {
 		}
 	}
 	
+	private boolean isNumber(char c){
+		return c>15&&c<26;
+	}
+	
 	private List<Block> buildBlock(List<String> lines){
 		List<Block> blocks=new ArrayList<>();
 		boolean codeLock=false;
@@ -88,162 +92,167 @@ class BlockParser {
 			BLOCK_TYPE blockType=BLOCK_TYPE.P;
 			Block lastBlock=blocks.size()>0?blocks.get(blocks.size()-1):null;
 			int lineLength=line.length();
-			if(line.charAt(0)=='#'&&line.charAt(1)==' '){
-				sb.append("<h1>");
-				lineParser.parse(line.substring(2), sb);
-				sb.append("</h1>");
-				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H1));
-			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)==' '){
-				sb.append("<h2>");
-				lineParser.parse(line.substring(3), sb);
-				sb.append("</h2>");
-				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H2));
-			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)==' '){
-				sb.append("<h3>");
-				lineParser.parse(line.substring(4), sb);
-				sb.append("</h3>");
-				blocks.add(new Block(line, BLOCK_TYPE.H3));
-			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)==' '){
-				sb.append("<h4>");
-				lineParser.parse(line.substring(5), sb);
-				sb.append("</h4>");
-				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H4));
-			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)==' '){
-				sb.append("<h5>");
-				lineParser.parse(line.substring(6), sb);
-				sb.append("</h5>");
-				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H5));
-			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)=='#'&&line.charAt(6)==' '){
-				sb.append("<h6>");
-				lineParser.parse(line.substring(7), sb);
-				sb.append("</h6>");
-				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H6));
-			}else if((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')||(trimedLine.charAt(0)=='1'&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' ')){
-				blockType=trimedLine.charAt(0)=='*'?BLOCK_TYPE.UNORDERED_LIST:BLOCK_TYPE.ORDERED_LIST;
-				char[] lineChars=line.toCharArray();
-				int spaceCount=0;
-				for (char c : lineChars) {
-					if(c==' ') spaceCount++;
-					else break;
-				}
-				int tabCount=spaceCount/2;
-				
-				if(lastBlock!=null&&!lastLineIsEmpty&&lastBlock.getType()==blockType){
-					Block rootBlock=lastBlock;
-					for (int j = 0; j <= tabCount; j++) {
-						List<Block> subBlocks=rootBlock.getSubBlock();
-						if(subBlocks!=null){
-							Block lastSubBlock=subBlocks.get(subBlocks.size()-1);
-							if(lastSubBlock.getTabCount()==tabCount){
-								lineParser.parse(trimedLine.substring(2), sb);
-								Block b=new Block(sb.toString(), null,null,tabCount);
-								subBlocks.add(b);
-								break;
-							}else{
-								rootBlock=lastSubBlock;
-							}
-						}else{
-							rootBlock.setType(blockType);
-							rootBlock.setSubBlock(new ArrayList<Block>());
-							lineParser.parse(trimedLine.substring(2), sb);
-							Block b=new Block(sb.toString(),null,null,tabCount);
-							rootBlock.getSubBlock().add(b);
-							break;
-						}
+			try {
+				if(lineLength>2&&line.charAt(0)=='#'&&line.charAt(1)==' '){
+					sb.append("<h1>");
+					lineParser.parse(line.substring(2), sb);
+					sb.append("</h1>");
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H1));
+				}else if(lineLength>3&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)==' '){
+					sb.append("<h2>");
+					lineParser.parse(line.substring(3), sb);
+					sb.append("</h2>");
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H2));
+				}else if(lineLength>4&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)==' '){
+					sb.append("<h3>");
+					lineParser.parse(line.substring(4), sb);
+					sb.append("</h3>");
+					blocks.add(new Block(line, BLOCK_TYPE.H3));
+				}else if(lineLength>5&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)==' '){
+					sb.append("<h4>");
+					lineParser.parse(line.substring(5), sb);
+					sb.append("</h4>");
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H4));
+				}else if(lineLength>6&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)==' '){
+					sb.append("<h5>");
+					lineParser.parse(line.substring(6), sb);
+					sb.append("</h5>");
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H5));
+				}else if(lineLength>7&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)=='#'&&line.charAt(6)==' '){
+					sb.append("<h6>");
+					lineParser.parse(line.substring(7), sb);
+					sb.append("</h6>");
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H6));
+				}else if(lineLength>2&&((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')||(isNumber(trimedLine.charAt(0))&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' '))){
+					blockType=trimedLine.charAt(0)=='*'?BLOCK_TYPE.UNORDERED_LIST:BLOCK_TYPE.ORDERED_LIST;
+					char[] lineChars=line.toCharArray();
+					int spaceCount=0;
+					for (char c : lineChars) {
+						if(c==' ') spaceCount++;
+						else break;
 					}
-				}else{
-					Block rootBlock=new Block(null,blockType,new ArrayList<Block>(),-1);
-					lineParser.parse(trimedLine.substring(2), sb);
-					Block b=new Block(sb.toString(), null,null,0);
-					rootBlock.getSubBlock().add(b);
-					blocks.add(rootBlock);
-				}
-			}else if(line.charAt(0)=='-'&&line.charAt(1)=='-'&&line.charAt(2)=='-'){
-				sb.append("<hr/>");
-				blocks.add(new Block(sb.toString(),BLOCK_TYPE.HR));
-			}else if(line.charAt(0)=='>'&&line.charAt(1)==' '){
-				blockType=BLOCK_TYPE.BLOCKQUOTES;
-				if(lastBlock==null||lastBlock.getType()!=blockType){
-					Block rootBlock=new Block(null, BLOCK_TYPE.BLOCKQUOTES, new ArrayList<Block>());
-					blocks.add(rootBlock);
-					lastBlock=rootBlock;
-				}
-				lineParser.parse(line.substring(2), sb);
-				Block b=new Block(sb.toString(),null);
-				lastBlock.getSubBlock().add(b);
-			}else if(lineLength>2&&line.charAt(0)=='`'&&line.charAt(1)=='`'&&line.charAt(2)=='`'){
-				blockType=BLOCK_TYPE.CODE;
-				if(!codeLock){
-					codeLock=true;
-					blocks.add(new Block(null,blockType,new ArrayList<Block>()));
-				}else{
-					codeLock=false;
-				}
-			}else if(lineLength>5&&line.charAt(0)=='-'&&line.charAt(1)==' '&&line.charAt(2)=='['&&(line.charAt(3)==' '||line.charAt(3)=='x')&&line.charAt(4)==']'&&line.charAt(5)==' '){
-				blockType=BLOCK_TYPE.TASK_LIST;
-				char check=line.charAt(3);
-				sb.append("<label><input type=\"checkbox\" ");
-				if(check=='x') sb.append("checked");
-				sb.append(">");
-				if(lastBlock.getType()!=blockType){
-					Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
-					blocks.add(rootBlock);
-					lastBlock=rootBlock;
-				}
-				lineParser.parse(line.substring(5), sb);
-				sb.append("</label>");
-				lastBlock.getSubBlock().add(new Block(sb.toString(), null));
-			}else if(line.indexOf("|")>-1){
-				blockType=BLOCK_TYPE.TABLE;
-				if(lastBlock.getType()==blockType){
-					if(line.indexOf("---")>-1){
-						Block tbodyBlock=new Block(null,BLOCK_TYPE.TBODY,new ArrayList<Block>());
-						lastBlock.getSubBlock().add(tbodyBlock);
+					int tabCount=spaceCount/2;
+					
+					if(lastBlock!=null&&!lastLineIsEmpty&&lastBlock.getType()==blockType){
+						Block rootBlock=lastBlock;
+						for (int j = 0; j <= tabCount; j++) {
+							List<Block> subBlocks=rootBlock.getSubBlock();
+							if(subBlocks!=null){
+								Block lastSubBlock=subBlocks.get(subBlocks.size()-1);
+								if(lastSubBlock.getTabCount()==tabCount){
+									lineParser.parse(trimedLine.substring(2), sb);
+									Block b=new Block(sb.toString(), null,null,tabCount);
+									subBlocks.add(b);
+									break;
+								}else{
+									rootBlock=lastSubBlock;
+								}
+							}else{
+								rootBlock.setType(blockType);
+								rootBlock.setSubBlock(new ArrayList<Block>());
+								lineParser.parse(trimedLine.substring(2), sb);
+								Block b=new Block(sb.toString(),null,null,tabCount);
+								rootBlock.getSubBlock().add(b);
+								break;
+							}
+						}
 					}else{
-						Block rootBlock=lastBlock.getSubBlock().get(lastBlock.getSubBlock().size()-1);
-						Block trBlock=new Block(null,BLOCK_TYPE.TR,new ArrayList<Block>());
+						Block rootBlock=new Block(null,blockType,new ArrayList<Block>(),-1);
+						lineParser.parse(trimedLine.substring(2), sb);
+						Block b=new Block(sb.toString(), null,null,0);
+						rootBlock.getSubBlock().add(b);
+						blocks.add(rootBlock);
+					}
+				}else if(lineLength>3&&line.charAt(0)=='-'&&line.charAt(1)=='-'&&line.charAt(2)=='-'){
+					sb.append("<hr/>");
+					blocks.add(new Block(sb.toString(),BLOCK_TYPE.HR));
+				}else if(lineLength>1&&line.charAt(0)=='>'){
+					blockType=BLOCK_TYPE.BLOCKQUOTES;
+					if(lastBlock==null||lastBlock.getType()!=blockType){
+						Block rootBlock=new Block(null, BLOCK_TYPE.BLOCKQUOTES, new ArrayList<Block>());
+						blocks.add(rootBlock);
+						lastBlock=rootBlock;
+					}
+					lineParser.parse(line.substring(2), sb);
+					Block b=new Block(sb.toString(),null);
+					lastBlock.getSubBlock().add(b);
+				}else if(lineLength>2&&line.charAt(0)=='`'&&line.charAt(1)=='`'&&line.charAt(2)=='`'){
+					blockType=BLOCK_TYPE.CODE;
+					if(!codeLock){
+						codeLock=true;
+						blocks.add(new Block(null,blockType,new ArrayList<Block>()));
+					}else{
+						codeLock=false;
+					}
+				}else if(lineLength>6&&line.charAt(0)=='-'&&line.charAt(1)==' '&&line.charAt(2)=='['&&(line.charAt(3)==' '||line.charAt(3)=='x')&&line.charAt(4)==']'&&line.charAt(5)==' '){
+					blockType=BLOCK_TYPE.TASK_LIST;
+					char check=line.charAt(3);
+					sb.append("<label><input type=\"checkbox\" ");
+					if(check=='x') sb.append("checked");
+					sb.append(">");
+					if(lastBlock.getType()!=blockType){
+						Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
+						blocks.add(rootBlock);
+						lastBlock=rootBlock;
+					}
+					lineParser.parse(line.substring(5), sb);
+					sb.append("</label>");
+					lastBlock.getSubBlock().add(new Block(sb.toString(), null));
+				}else if(line.indexOf("|")>-1){
+					blockType=BLOCK_TYPE.TABLE;
+					if(lastBlock.getType()==blockType){
+						if(line.indexOf("---")>-1){
+							Block tbodyBlock=new Block(null,BLOCK_TYPE.TBODY,new ArrayList<Block>());
+							lastBlock.getSubBlock().add(tbodyBlock);
+						}else{
+							Block rootBlock=lastBlock.getSubBlock().get(lastBlock.getSubBlock().size()-1);
+							Block trBlock=new Block(null,BLOCK_TYPE.TR,new ArrayList<Block>());
+							
+							String[] tds=line.split("\\|");
+							for (String td : tds) {
+								sb.setLength(0);
+								if(td.length()>0){
+									lineParser.parse(td,sb);
+									Block b=new Block(sb.toString(),null);
+									trBlock.getSubBlock().add(b);	
+								}
+							}
+							rootBlock.getSubBlock().add(trBlock);
+						}
+					}else{
+						Block tableBlock=new Block(null, blockType,new ArrayList<Block>());
+						Block theadBlock=new Block(null,BLOCK_TYPE.THEAD,new ArrayList<Block>());
+						Block trBlock=new Block(null, BLOCK_TYPE.TR,new ArrayList<Block>());
 						
-						String[] tds=line.split("\\|");
-						for (String td : tds) {
+						String[] ths=line.split("\\|");
+						for (String th : ths) {
 							sb.setLength(0);
-							if(td.length()>0){
-								lineParser.parse(td,sb);
+							if(th.length()>0){
+								lineParser.parse(th,sb);
 								Block b=new Block(sb.toString(),null);
 								trBlock.getSubBlock().add(b);	
 							}
 						}
-						rootBlock.getSubBlock().add(trBlock);
+						theadBlock.getSubBlock().add(trBlock);
+						tableBlock.getSubBlock().add(theadBlock);
+						
+						blocks.add(tableBlock);
 					}
 				}else{
-					Block tableBlock=new Block(null, blockType,new ArrayList<Block>());
-					Block theadBlock=new Block(null,BLOCK_TYPE.THEAD,new ArrayList<Block>());
-					Block trBlock=new Block(null, BLOCK_TYPE.TR,new ArrayList<Block>());
-					
-					String[] ths=line.split("\\|");
-					for (String th : ths) {
-						sb.setLength(0);
-						if(th.length()>0){
-							lineParser.parse(th,sb);
-							Block b=new Block(sb.toString(),null);
-							trBlock.getSubBlock().add(b);	
-						}
+					if(codeLock){
+						lastBlock.getSubBlock().add(new Block(line, null));
+					}else{
+						sb.append("<p>");
+						lineParser.parse(line, sb);
+						sb.append("</p>");
+						blocks.add(new Block(sb.toString(), BLOCK_TYPE.P));
 					}
-					theadBlock.getSubBlock().add(trBlock);
-					tableBlock.getSubBlock().add(theadBlock);
-					
-					blocks.add(tableBlock);
 				}
-			}else{
-				if(codeLock){
-					lastBlock.getSubBlock().add(new Block(line, null));
-				}else{
-					sb.append("<p>");
-					lineParser.parse(line, sb);
-					sb.append("</p>");
-					blocks.add(new Block(sb.toString(), BLOCK_TYPE.P));
-				}
+				lastLineIsEmpty=false;
+			} catch (Exception e) {
+				System.out.println(line);
+				throw e;
 			}
-			lastLineIsEmpty=false;
 		}
 		return blocks;
 	}
