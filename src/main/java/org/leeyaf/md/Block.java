@@ -2,70 +2,61 @@ package org.leeyaf.md;
 
 import java.util.List;
 
-public class Block {
+class Block {
 	private String source;
 	private BLOCK_TYPE type;
 	private List<Block> subBlock;
 	private Integer tabCount;
-	private List<LineBlock> lineBlocks;
 	
-	public Block(){}
+	Block(){}
 	
-	public Block(String source, BLOCK_TYPE type, List<Block> subBlock) {
+	Block(String source, BLOCK_TYPE type, List<Block> subBlock) {
 		this.source = source;
 		this.type = type;
 		this.subBlock = subBlock;
 	}
 
-	public Block(String source, BLOCK_TYPE type) {
+	Block(String source, BLOCK_TYPE type) {
 		this.source = source;
 		this.type = type;
 	}
 
-	public Block(String source, BLOCK_TYPE type, List<Block> subBlock, Integer tabCount) {
+	Block(String source, BLOCK_TYPE type, List<Block> subBlock, Integer tabCount) {
 		this.source = source;
 		this.type = type;
 		this.subBlock = subBlock;
 		this.tabCount = tabCount;
 	}
 
-	public List<LineBlock> getLineBlocks() {
-		return lineBlocks;
-	}
-
-	public void setLineBlocks(List<LineBlock> lineBlocks) {
-		this.lineBlocks = lineBlocks;
-	}
-
-	public String getSource() {
+	String getSource() {
 		return source;
 	}
 
-	public void setSource(String source) {
+	void setSource(String source) {
 		this.source = source;
 	}
 
-	public BLOCK_TYPE getType() {
+	BLOCK_TYPE getType() {
 		return type;
 	}
 
-	public void setType(BLOCK_TYPE type) {
+	void setType(BLOCK_TYPE type) {
 		this.type = type;
 	}
 
-	public List<Block> getSubBlock() {
+	List<Block> getSubBlock() {
 		return subBlock;
 	}
 
-	public void setSubBlock(List<Block> subBlock) {
+	void setSubBlock(List<Block> subBlock) {
 		this.subBlock = subBlock;
 	}
 
-	public Integer getTabCount() {
+	Integer getTabCount() {
 		return tabCount;
 	}
 
-	public void setTabCount(Integer tabCount) {
+	void setTabCount(Integer tabCount) {
 		this.tabCount = tabCount;
 	}
 
@@ -88,6 +79,15 @@ public class Block {
 		THEAD,
 		TH,
 		TBODY,
-		TD;
+	}
+	
+	enum LINE_BLOCK_TYPE{
+		ITALIC,
+		BOLD,
+		IMAGE,
+		LINK,
+		INLINE_CODE,
+		EMOJI,
+		NORAML,
 	}
 }

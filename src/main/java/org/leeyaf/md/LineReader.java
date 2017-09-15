@@ -1,14 +1,15 @@
 package org.leeyaf.md;
 
-public class LineReader {
+@Deprecated
+final class LineReader {
 	private int pos;
 	private char[] data;
-	public  LineReader(char[] data){
+	protected LineReader(char[] data){
 		pos=0;
 		this.data=data;
 	}
 	
-	public char[] readLine(){
+	final char[] readLine(){
 		int start=pos;
 		for (; pos < data.length; pos++) {
 			if('\n'==data[pos]){

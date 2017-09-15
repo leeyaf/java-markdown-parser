@@ -1,49 +1,16 @@
 package org.leeyaf.md;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.leeyaf.md.Block.BLOCK_TYPE;
-import org.leeyaf.md.LineBlock.LINE_BLOCK_TYPE;
 
-public class NewParser {
-	private List<String> lines;
-	private List<Block> blocks;
+class BlockParser {
 	private final char WRAP='\n';
+	private LineParser lineParser=new LineParser();
 	
-	public NewParser(File file){
-		try {
-			List<String> lines=new ArrayList<>();
-			FileReader fr=new FileReader(file);
-			BufferedReader br=new BufferedReader(fr);
-			String readed=null;
-			while((readed=br.readLine())!=null){
-				lines.add(readed);
-			}
-			br.close();
-			fr.close();
-			this.lines=lines;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public NewParser(String source){
-		try {
-			String[] ls=source.split("\n");
-			List<String> lines=Arrays.asList(ls);
-			this.lines=lines;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public String process(){
-		buildBlock();
+	String parser(List<String> lines){
+		List<Block> blocks=buildBlock(lines);
 		StringBuilder sb=new StringBuilder();
 		processSub(null, blocks, sb);
 		return sb.toString();
@@ -105,14 +72,14 @@ public class NewParser {
 		}
 	}
 	
-	private void buildBlock(){
+	private List<Block> buildBlock(List<String> lines){
 		List<Block> blocks=new ArrayList<>();
 		boolean codeLock=false;
 		boolean lastLineIsEmpty=false;
 		StringBuilder sb=new StringBuilder();
-		for (int i = 0; i < this.lines.size(); i++) {
+		for (int i = 0; i < lines.size(); i++) {
 			sb.setLength(0);
-			String line=this.lines.get(i);
+			String line=lines.get(i);
 			String trimedLine=line.trim();
 			if(line.length()<1||trimedLine.length()<1){
 				lastLineIsEmpty=true;
@@ -123,32 +90,32 @@ public class NewParser {
 			int lineLength=line.length();
 			if(line.charAt(0)=='#'&&line.charAt(1)==' '){
 				sb.append("<h1>");
-				buildLine(line.substring(2), sb);
+				lineParser.parse(line.substring(2), sb);
 				sb.append("</h1>");
 				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H1));
 			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)==' '){
 				sb.append("<h2>");
-				buildLine(line.substring(3), sb);
+				lineParser.parse(line.substring(3), sb);
 				sb.append("</h2>");
 				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H2));
 			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)==' '){
 				sb.append("<h3>");
-				buildLine(line.substring(4), sb);
+				lineParser.parse(line.substring(4), sb);
 				sb.append("</h3>");
 				blocks.add(new Block(line, BLOCK_TYPE.H3));
 			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)==' '){
 				sb.append("<h4>");
-				buildLine(line.substring(5), sb);
+				lineParser.parse(line.substring(5), sb);
 				sb.append("</h4>");
 				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H4));
 			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)==' '){
 				sb.append("<h5>");
-				buildLine(line.substring(6), sb);
+				lineParser.parse(line.substring(6), sb);
 				sb.append("</h5>");
 				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H5));
 			}else if(line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)=='#'&&line.charAt(5)=='#'&&line.charAt(6)==' '){
 				sb.append("<h6>");
-				buildLine(line.substring(7), sb);
+				lineParser.parse(line.substring(7), sb);
 				sb.append("</h6>");
 				blocks.add(new Block(sb.toString(), BLOCK_TYPE.H6));
 			}else if((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')||(trimedLine.charAt(0)=='1'&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' ')){
@@ -168,7 +135,7 @@ public class NewParser {
 						if(subBlocks!=null){
 							Block lastSubBlock=subBlocks.get(subBlocks.size()-1);
 							if(lastSubBlock.getTabCount()==tabCount){
-								buildLine(trimedLine.substring(2), sb);
+								lineParser.parse(trimedLine.substring(2), sb);
 								Block b=new Block(sb.toString(), null,null,tabCount);
 								subBlocks.add(b);
 								break;
@@ -178,7 +145,7 @@ public class NewParser {
 						}else{
 							rootBlock.setType(blockType);
 							rootBlock.setSubBlock(new ArrayList<Block>());
-							buildLine(trimedLine.substring(2), sb);
+							lineParser.parse(trimedLine.substring(2), sb);
 							Block b=new Block(sb.toString(),null,null,tabCount);
 							rootBlock.getSubBlock().add(b);
 							break;
@@ -186,7 +153,7 @@ public class NewParser {
 					}
 				}else{
 					Block rootBlock=new Block(null,blockType,new ArrayList<Block>(),-1);
-					buildLine(trimedLine.substring(2), sb);
+					lineParser.parse(trimedLine.substring(2), sb);
 					Block b=new Block(sb.toString(), null,null,0);
 					rootBlock.getSubBlock().add(b);
 					blocks.add(rootBlock);
@@ -196,23 +163,19 @@ public class NewParser {
 				blocks.add(new Block(sb.toString(),BLOCK_TYPE.HR));
 			}else if(line.charAt(0)=='>'&&line.charAt(1)==' '){
 				blockType=BLOCK_TYPE.BLOCKQUOTES;
-				if(lastBlock!=null&&lastBlock.getType()==blockType){
-					buildLine(line.substring(2), sb);
-					Block b=new Block(sb.toString(),null);
-					lastBlock.getSubBlock().add(b);
-				}else{
+				if(lastBlock==null||lastBlock.getType()!=blockType){
 					Block rootBlock=new Block(null, BLOCK_TYPE.BLOCKQUOTES, new ArrayList<Block>());
-					buildLine(line.substring(2), sb);
-					Block b=new Block(sb.toString(),null);
-					rootBlock.getSubBlock().add(b);
 					blocks.add(rootBlock);
+					lastBlock=rootBlock;
 				}
+				lineParser.parse(line.substring(2), sb);
+				Block b=new Block(sb.toString(),null);
+				lastBlock.getSubBlock().add(b);
 			}else if(lineLength>2&&line.charAt(0)=='`'&&line.charAt(1)=='`'&&line.charAt(2)=='`'){
 				blockType=BLOCK_TYPE.CODE;
 				if(!codeLock){
 					codeLock=true;
-					Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
-					blocks.add(rootBlock);
+					blocks.add(new Block(null,blockType,new ArrayList<Block>()));
 				}else{
 					codeLock=false;
 				}
@@ -222,19 +185,14 @@ public class NewParser {
 				sb.append("<label><input type=\"checkbox\" ");
 				if(check=='x') sb.append("checked");
 				sb.append(">");
-				if(lastBlock.getType()==blockType){
-					buildLine(line.substring(5), sb);
-					sb.append("</label>");
-					Block b=new Block(sb.toString(), null);
-					lastBlock.getSubBlock().add(b);
-				}else{
+				if(lastBlock.getType()!=blockType){
 					Block rootBlock=new Block(null,blockType,new ArrayList<Block>());
-					buildLine(line.substring(5), sb);
-					sb.append("</label>");
-					Block b=new Block(sb.toString(), null);
-					rootBlock.getSubBlock().add(b);
 					blocks.add(rootBlock);
+					lastBlock=rootBlock;
 				}
+				lineParser.parse(line.substring(5), sb);
+				sb.append("</label>");
+				lastBlock.getSubBlock().add(new Block(sb.toString(), null));
 			}else if(line.indexOf("|")>-1){
 				blockType=BLOCK_TYPE.TABLE;
 				if(lastBlock.getType()==blockType){
@@ -249,7 +207,7 @@ public class NewParser {
 						for (String td : tds) {
 							sb.setLength(0);
 							if(td.length()>0){
-								buildLine(td,sb);
+								lineParser.parse(td,sb);
 								Block b=new Block(sb.toString(),null);
 								trBlock.getSubBlock().add(b);	
 							}
@@ -265,7 +223,7 @@ public class NewParser {
 					for (String th : ths) {
 						sb.setLength(0);
 						if(th.length()>0){
-							buildLine(th,sb);
+							lineParser.parse(th,sb);
 							Block b=new Block(sb.toString(),null);
 							trBlock.getSubBlock().add(b);	
 						}
@@ -277,107 +235,16 @@ public class NewParser {
 				}
 			}else{
 				if(codeLock){
-					Block subBlock=new Block(line, null);
-					lastBlock.getSubBlock().add(subBlock);
+					lastBlock.getSubBlock().add(new Block(line, null));
 				}else{
 					sb.append("<p>");
-					buildLine(line, sb);
+					lineParser.parse(line, sb);
 					sb.append("</p>");
 					blocks.add(new Block(sb.toString(), BLOCK_TYPE.P));
 				}
 			}
 			lastLineIsEmpty=false;
 		}
-		this.blocks=blocks;
-	}
-	
-	private void buildLine(String source,StringBuilder sb){
-		char[] cs=source.toCharArray();
-		for (int i = 0; i < cs.length; i++) {
-			char c=cs[i];
-			if(i+1<cs.length&&((c=='*'&&cs[i+1]=='*')||(c=='_'&&cs[i+1]=='_'))){
-				sb.append("<b>");
-				String subSource=findUntil(source.substring(i+2), LINE_BLOCK_TYPE.BOLD);
-				buildLine(subSource,sb);
-				sb.append("</b>");
-				i+=subSource.length()+3;
-			}else if(c=='*'||c=='_'){
-				sb.append("<i>");
-				String subSource=findUntil(source.substring(i+1), LINE_BLOCK_TYPE.ITALIC);
-				buildLine(subSource,sb);
-				sb.append("</i>");
-				i+=subSource.length()+1;
-			}else if(c=='`'){
-				sb.append("<code>");
-				String subSource=findUntil(source.substring(i+1), LINE_BLOCK_TYPE.INLINE_CODE);
-				buildLine(subSource,sb);
-				sb.append("</code>");
-				i+=subSource.length()+1;
-			}
-			else if(c=='!'){
-				String temp=source.substring(i);
-				if(temp.indexOf(")")>-1){
-					temp=temp.substring(0, temp.indexOf(")")+1);
-					String alt=temp.substring(2,temp.indexOf("]"));
-					String src=temp.substring(temp.indexOf("(")+1,temp.length()-1);
-					sb.append("<img src=\"").append(src).append("\" alt=\"").append(alt).append("\"/>");
-					i+=temp.length()-1;
-				}else{
-					sb.append(c);
-				}
-			}else if(c=='['){
-				String temp=source.substring(i);
-				temp=temp.substring(0, temp.indexOf(")")+1);
-				String title=temp.substring(1,temp.indexOf("]"));
-				String href=temp.substring(temp.indexOf("(")+1,temp.length()-1);
-				sb.append("<a href=\"").append(href).append("\">").append(title).append("</a>");
-				i+=temp.length()-1;
-			}else if(c==':'){
-				String temp=source.substring(i+1);
-				int ep=0;
-				if((ep=temp.indexOf(":"))>-1){
-					temp=temp.substring(0, ep);
-					sb.append("<em>").append(temp).append("</em>");
-					i+=temp.length()+1;
-				}else{
-					sb.append(c);
-				}
-			}
-			else{
-				sb.append(c);
-			}
-		}
-	}
-	
-	private String findUntil(String source,LINE_BLOCK_TYPE type){
-		StringBuilder sb=new StringBuilder();
-		char[] cs=source.toCharArray();
-		for (int i = 0; i < cs.length; i++) {
-			if(type==LINE_BLOCK_TYPE.BOLD){
-				if(i+1==cs.length){
-					sb.append(cs[i]);
-				}else{
-					if((cs[i]=='*'&&cs[i+1]=='*')||(cs[i]=='_'&&cs[i+1]=='_')) break;
-					else sb.append(cs[i]);
-				}
-			}else if(type==LINE_BLOCK_TYPE.ITALIC){
-				if(i==0){
-					if((cs[i]=='*'&&cs[i+1]!='*')||(cs[i]=='_'&&cs[i+1]!='_')) break;
-					else sb.append(cs[i]);
-				}else if(i+1==cs.length){
-					if((cs[i-1]!='*'&&cs[i]=='*')||(cs[i-1]!='_'&&cs[i]=='_')) break;
-					else sb.append(cs[i]);
-				}else{
-					if((cs[i-1]!='*'&&cs[i]=='*'&&cs[i+1]!='*')||(cs[i-1]!='_'&&cs[i]=='_'&&cs[i+1]!='_')) break;
-					else sb.append(cs[i]);
-				}
-			}else if(type==LINE_BLOCK_TYPE.INLINE_CODE){
-				if(cs[i]=='`') break;
-				else sb.append(cs[i]);
-			}else{
-				sb.append(cs[i]);
-			}
-		}
-		return sb.toString();
+		return blocks;
 	}
 }
