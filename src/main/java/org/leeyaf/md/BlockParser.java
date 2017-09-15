@@ -16,66 +16,6 @@ class BlockParser {
 		return sb.toString();
 	}
 	
-	private void processSub(BLOCK_TYPE parentBlockType,List<Block> blocks,StringBuilder sb){
-		for (Block b : blocks) {
-			if(b.getType()!=null){
-				if(b.getType()==BLOCK_TYPE.UNORDERED_LIST||b.getType()==BLOCK_TYPE.TASK_LIST){
-					if(b.getSource()!=null) sb.append("<li>").append(b.getSource()).append(WRAP);
-					sb.append("<ul>").append(WRAP);
-					processSub(BLOCK_TYPE.UNORDERED_LIST,b.getSubBlock(), sb);
-					sb.append("</ul>").append(WRAP);
-					if(b.getSource()!=null) sb.append("</li>");
-				}else if(b.getType()==BLOCK_TYPE.ORDERED_LIST){
-					if(b.getSource()!=null) sb.append("<li>").append(b.getSource()).append(WRAP);
-					sb.append("<ol>").append(WRAP);
-					processSub(BLOCK_TYPE.ORDERED_LIST,b.getSubBlock(), sb);
-					sb.append("</ol>").append(WRAP);
-					if(b.getSource()!=null) sb.append("</li>");
-				}else if(b.getType()==BLOCK_TYPE.BLOCKQUOTES){
-					sb.append("<blockquote>").append(WRAP);
-					processSub(BLOCK_TYPE.BLOCKQUOTES,b.getSubBlock(), sb);
-					sb.append("</blockquote>").append(WRAP);
-				}else if(b.getType()==BLOCK_TYPE.CODE){
-					sb.append("<pre>").append(WRAP);
-					processSub(BLOCK_TYPE.CODE,b.getSubBlock(), sb);
-					sb.append("</pre>").append(WRAP);
-				}else if(b.getType()==BLOCK_TYPE.TABLE){
-					sb.append("<table>").append(WRAP);
-					processSub(BLOCK_TYPE.TABLE,b.getSubBlock(), sb);
-					sb.append("</table>").append(WRAP);
-				}else if(b.getType()==BLOCK_TYPE.THEAD){
-					sb.append("<thead>").append(WRAP);
-					processSub(BLOCK_TYPE.THEAD,b.getSubBlock(), sb);
-					sb.append("</thead>").append(WRAP);
-				}else if(b.getType()==BLOCK_TYPE.TBODY){
-					sb.append("<tbody>").append(WRAP);
-					processSub(BLOCK_TYPE.TBODY,b.getSubBlock(), sb);
-					sb.append("</tbody>").append(WRAP);
-				}else if(b.getType()==BLOCK_TYPE.TR){
-					sb.append("<tr>").append(WRAP);
-					processSub(parentBlockType,b.getSubBlock(), sb);
-					sb.append("</tr>").append(WRAP);
-				}else{
-					sb.append(b.getSource()).append(WRAP);
-				}
-			}else{
-				if(parentBlockType==BLOCK_TYPE.UNORDERED_LIST||parentBlockType==BLOCK_TYPE.ORDERED_LIST){
-					sb.append("<li>").append(b.getSource()).append("</li>").append(WRAP);
-				}else if(parentBlockType==BLOCK_TYPE.THEAD){
-					sb.append("<th>").append(b.getSource()).append("</th>").append(WRAP);
-				}else if(parentBlockType==BLOCK_TYPE.TBODY){
-					sb.append("<td>").append(b.getSource()).append("</td>").append(WRAP);
-				}else{
-					sb.append(b.getSource()).append(WRAP);
-				}
-			}
-		}
-	}
-	
-	private boolean isNumber(char c){
-		return c>15&&c<26;
-	}
-	
 	private List<Block> buildBlock(List<String> lines){
 		List<Block> blocks=new ArrayList<>();
 		boolean codeLock=false;
@@ -107,7 +47,7 @@ class BlockParser {
 					sb.append("<h3>");
 					lineParser.parse(line.substring(4), sb);
 					sb.append("</h3>");
-					blocks.add(new Block(line, BLOCK_TYPE.H3));
+					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H3));
 				}else if(lineLength>5&&line.charAt(0)=='#'&&line.charAt(1)=='#'&&line.charAt(2)=='#'&&line.charAt(3)=='#'&&line.charAt(4)==' '){
 					sb.append("<h4>");
 					lineParser.parse(line.substring(5), sb);
@@ -123,8 +63,11 @@ class BlockParser {
 					lineParser.parse(line.substring(7), sb);
 					sb.append("</h6>");
 					blocks.add(new Block(sb.toString(), BLOCK_TYPE.H6));
-				}else if(lineLength>2&&((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')||(isNumber(trimedLine.charAt(0))&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' '))){
-					blockType=trimedLine.charAt(0)=='*'?BLOCK_TYPE.UNORDERED_LIST:BLOCK_TYPE.ORDERED_LIST;
+				}else if(lineLength>2
+						&&((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')
+								||(trimedLine.charAt(0)=='-'&&trimedLine.charAt(1)==' ')
+								||(isNumber(trimedLine.charAt(0))&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' '))){
+					blockType=isNumber(trimedLine.charAt(0))?BLOCK_TYPE.ORDERED_LIST:BLOCK_TYPE.UNORDERED_LIST;
 					char[] lineChars=line.toCharArray();
 					int spaceCount=0;
 					for (char c : lineChars) {
@@ -166,14 +109,14 @@ class BlockParser {
 				}else if(lineLength>3&&line.charAt(0)=='-'&&line.charAt(1)=='-'&&line.charAt(2)=='-'){
 					sb.append("<hr/>");
 					blocks.add(new Block(sb.toString(),BLOCK_TYPE.HR));
-				}else if(lineLength>1&&line.charAt(0)=='>'){
+				}else if(lineLength>0&&line.charAt(0)=='>'){
 					blockType=BLOCK_TYPE.BLOCKQUOTES;
 					if(lastBlock==null||lastBlock.getType()!=blockType){
 						Block rootBlock=new Block(null, BLOCK_TYPE.BLOCKQUOTES, new ArrayList<Block>());
 						blocks.add(rootBlock);
 						lastBlock=rootBlock;
 					}
-					lineParser.parse(line.substring(2), sb);
+					lineParser.parse(line.substring(1), sb);
 					Block b=new Block(sb.toString(),null);
 					lastBlock.getSubBlock().add(b);
 				}else if(lineLength>2&&line.charAt(0)=='`'&&line.charAt(1)=='`'&&line.charAt(2)=='`'){
@@ -255,5 +198,65 @@ class BlockParser {
 			}
 		}
 		return blocks;
+	}
+	
+	private void processSub(BLOCK_TYPE parentBlockType,List<Block> blocks,StringBuilder sb){
+		for (Block b : blocks) {
+			if(b.getType()!=null){
+				if(b.getType()==BLOCK_TYPE.UNORDERED_LIST||b.getType()==BLOCK_TYPE.TASK_LIST){
+					if(b.getSource()!=null) sb.append("<li>").append(b.getSource()).append(WRAP);
+					sb.append("<ul>").append(WRAP);
+					processSub(BLOCK_TYPE.UNORDERED_LIST,b.getSubBlock(), sb);
+					sb.append("</ul>").append(WRAP);
+					if(b.getSource()!=null) sb.append("</li>");
+				}else if(b.getType()==BLOCK_TYPE.ORDERED_LIST){
+					if(b.getSource()!=null) sb.append("<li>").append(b.getSource()).append(WRAP);
+					sb.append("<ol>").append(WRAP);
+					processSub(BLOCK_TYPE.ORDERED_LIST,b.getSubBlock(), sb);
+					sb.append("</ol>").append(WRAP);
+					if(b.getSource()!=null) sb.append("</li>");
+				}else if(b.getType()==BLOCK_TYPE.BLOCKQUOTES){
+					sb.append("<blockquote>").append(WRAP);
+					processSub(BLOCK_TYPE.BLOCKQUOTES,b.getSubBlock(), sb);
+					sb.append("</blockquote>").append(WRAP);
+				}else if(b.getType()==BLOCK_TYPE.CODE){
+					sb.append("<pre>").append(WRAP);
+					processSub(BLOCK_TYPE.CODE,b.getSubBlock(), sb);
+					sb.append("</pre>").append(WRAP);
+				}else if(b.getType()==BLOCK_TYPE.TABLE){
+					sb.append("<table>").append(WRAP);
+					processSub(BLOCK_TYPE.TABLE,b.getSubBlock(), sb);
+					sb.append("</table>").append(WRAP);
+				}else if(b.getType()==BLOCK_TYPE.THEAD){
+					sb.append("<thead>").append(WRAP);
+					processSub(BLOCK_TYPE.THEAD,b.getSubBlock(), sb);
+					sb.append("</thead>").append(WRAP);
+				}else if(b.getType()==BLOCK_TYPE.TBODY){
+					sb.append("<tbody>").append(WRAP);
+					processSub(BLOCK_TYPE.TBODY,b.getSubBlock(), sb);
+					sb.append("</tbody>").append(WRAP);
+				}else if(b.getType()==BLOCK_TYPE.TR){
+					sb.append("<tr>").append(WRAP);
+					processSub(parentBlockType,b.getSubBlock(), sb);
+					sb.append("</tr>").append(WRAP);
+				}else{
+					sb.append(b.getSource()).append(WRAP);
+				}
+			}else{
+				if(parentBlockType==BLOCK_TYPE.UNORDERED_LIST||parentBlockType==BLOCK_TYPE.ORDERED_LIST){
+					sb.append("<li>").append(b.getSource()).append("</li>").append(WRAP);
+				}else if(parentBlockType==BLOCK_TYPE.THEAD){
+					sb.append("<th>").append(b.getSource()).append("</th>").append(WRAP);
+				}else if(parentBlockType==BLOCK_TYPE.TBODY){
+					sb.append("<td>").append(b.getSource()).append("</td>").append(WRAP);
+				}else{
+					sb.append(b.getSource()).append(WRAP);
+				}
+			}
+		}
+	}
+	
+	private boolean isNumber(char c){
+		return c>15&&c<26;
 	}
 }

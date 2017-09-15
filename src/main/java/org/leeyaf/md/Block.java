@@ -28,35 +28,35 @@ class Block {
 		this.tabCount = tabCount;
 	}
 
-	String getSource() {
+	public String getSource() {
 		return source;
 	}
 
-	void setSource(String source) {
+	public void setSource(String source) {
 		this.source = source;
 	}
 
-	BLOCK_TYPE getType() {
+	public BLOCK_TYPE getType() {
 		return type;
 	}
 
-	void setType(BLOCK_TYPE type) {
+	public void setType(BLOCK_TYPE type) {
 		this.type = type;
 	}
 
-	List<Block> getSubBlock() {
+	public List<Block> getSubBlock() {
 		return subBlock;
 	}
 
-	void setSubBlock(List<Block> subBlock) {
+	public void setSubBlock(List<Block> subBlock) {
 		this.subBlock = subBlock;
 	}
 
-	Integer getTabCount() {
+	public Integer getTabCount() {
 		return tabCount;
 	}
 
-	void setTabCount(Integer tabCount) {
+	public void setTabCount(Integer tabCount) {
 		this.tabCount = tabCount;
 	}
 

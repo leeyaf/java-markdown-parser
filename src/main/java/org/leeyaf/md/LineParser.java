@@ -38,6 +38,7 @@ class LineParser {
 					sb.append(c);
 				}
 			}else if(c=='['){
+				// TODO: 链接里面嵌套图片和文字
 				int len=0;
 				String temp=source.substring(i+1);
 				int tep=temp.indexOf("]");
@@ -62,7 +63,7 @@ class LineParser {
 					sb.append(c);
 				}
 				sb.append("<a href=\"").append(href).append("\">").append(title).append("</a>");
-				i+=len+4;
+				i+=len+3;
 			}else if((i+1)<cs.length&&c==':'&&isEmoji(cs[i+1])){
 				sb.append("<em>");
 				String subSource=findUntil(source.substring(i+1), LINE_BLOCK_TYPE.EMOJI);
