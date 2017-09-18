@@ -80,14 +80,4 @@ class Block {
 		TH,
 		TBODY,
 	}
-	
-	enum LINE_BLOCK_TYPE{
-		ITALIC,
-		BOLD,
-		IMAGE,
-		LINK,
-		INLINE_CODE,
-		EMOJI,
-		NORAML,
-	}
 }
