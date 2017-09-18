@@ -2,7 +2,7 @@ package org.leeyaf.md;
 
 import java.util.List;
 
-class LineBlock {
+public class LineBlock {
 	private String source;
 	private LINE_BLOCK_TYPE type;
 	private List<LineBlock> subBlock;

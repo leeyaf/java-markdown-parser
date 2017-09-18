@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.leeyaf.md.LineBlock.LINE_BLOCK_TYPE;
 
-class LineParser {
+public class LineParser {
 	private int i;
 	
 	public void parse(String source,StringBuilder sb){
@@ -34,13 +34,12 @@ class LineParser {
 					if(block.getSource()!=null) sb.append(block.getSource());
 				}else if(block.getType()==LINE_BLOCK_TYPE.LINK){
 					String source=block.getSource();
-					if(source!=null&&source.length()>1) source=source.substring(1, source.length()-1);
-					sb.append("<a href=\"").append(source).append("\">");
+					if(source!=null) sb.append("<a href=\"").append(source).append("\">");
 					process(block.getSubBlock(), sb);
 					sb.append("</a>");
 				}
 			}else{
-				sb.append(block.getSource());
+				if(block.getSource()!=null) sb.append(block.getSource());
 			}
 		}
 	}
@@ -83,7 +82,18 @@ class LineParser {
 				List<LineBlock> subBlock=parse(source, LINE_BLOCK_TYPE.LINK);
 				block.setSubBlock(subBlock);
 				blocks.add(block);
-				lastBlock=block;
+				if(source.length()>i+2){
+					String temp=source.substring(i+2);
+					temp=temp.substring(0,temp.indexOf(")"));
+					block.setSource(temp);
+					blocks.add(block);
+					i+=temp.length()+2;
+					lastBlock=new LineBlock(null, null, null);
+					blocks.add(lastBlock);
+				}else{
+					lastBlock=new LineBlock(""+c, null, null);
+					blocks.add(lastBlock);
+				}
 			}else if(c==']'){
 				if(until==LINE_BLOCK_TYPE.LINK) break;
 				else sb.append(c);
