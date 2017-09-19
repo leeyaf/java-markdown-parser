@@ -13,6 +13,15 @@ public class LineBlock {
 		this.subBlock = subBlock;
 	}
 
+	public LineBlock(String source, LINE_BLOCK_TYPE type) {
+		this.source = source;
+		this.type = type;
+	}
+
+	public LineBlock(LINE_BLOCK_TYPE type) {
+		this.type = type;
+	}
+
 	public String getSource() {
 		return source;
 	}
