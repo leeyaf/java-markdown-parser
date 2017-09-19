@@ -96,11 +96,14 @@ public class LineParser {
 				}
 			}else if(c=='`'){
 				i++;
-				sb.append("<code>");
 				for (; i < cs.length; i++) {
 					if(cs[i]!='`') sb.append(cs[i]);
 					else break;
 				}
+				String code=StringUtil.unescapeHtml(sb.toString());
+				sb.setLength(0);
+				sb.append("<code>");
+				sb.append(code);
 				sb.append("</code>");
 				LineBlock block=new LineBlock(sb.toString(),null);
 				blocks.add(block);
@@ -114,11 +117,11 @@ public class LineParser {
 				blocks.add(new LineBlock(sb.toString(), null));
 				i+=temp.length()-1;
 				lastBlock=null;
-			}else if((i+1)<cs.length&&c==':'&&isEmoji(cs[i+1])){
+			}else if((i+1)<cs.length&&c==':'&&StringUtil.isEmoji(cs[i+1])){
 				sb.append("<em>");
 				i++;
 				for (; i < cs.length; i++) {
-					if(isEmoji(cs[i])) sb.append(cs[i]);
+					if(StringUtil.isEmoji(cs[i])) sb.append(cs[i]);
 					else break;
 				}
 				sb.append("</em>");
@@ -133,9 +136,5 @@ public class LineParser {
 			}
 		}
 		return blocks;
-	}
-	
-	private boolean isEmoji(char c){
-		return c==43||c==45||c>47&&c<58||c>96&&c<123;
 	}
 }

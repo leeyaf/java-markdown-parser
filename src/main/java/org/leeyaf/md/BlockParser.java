@@ -67,8 +67,8 @@ class BlockParser {
 				}else if(lineLength>2
 						&&((trimedLine.charAt(0)=='*'&&trimedLine.charAt(1)==' ')
 								||(trimedLine.charAt(0)=='-'&&trimedLine.charAt(1)==' ')
-								||(isNumber(trimedLine.charAt(0))&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' '))){
-					blockType=isNumber(trimedLine.charAt(0))?BLOCK_TYPE.ORDERED_LIST:BLOCK_TYPE.UNORDERED_LIST;
+								||(StringUtil.isNumber(trimedLine.charAt(0))&&trimedLine.charAt(1)=='.'&&trimedLine.charAt(2)==' '))){
+					blockType=StringUtil.isNumber(trimedLine.charAt(0))?BLOCK_TYPE.ORDERED_LIST:BLOCK_TYPE.UNORDERED_LIST;
 					char[] lineChars=line.toCharArray();
 					int spaceCount=0;
 					for (char c : lineChars) {
@@ -242,14 +242,12 @@ class BlockParser {
 					sb.append("<th>").append(b.getSource()).append("</th>").append(WRAP);
 				}else if(parentBlockType==BLOCK_TYPE.TBODY){
 					sb.append("<td>").append(b.getSource()).append("</td>").append(WRAP);
+				}else if(parentBlockType==BLOCK_TYPE.CODE){
+					sb.append(StringUtil.unescapeHtml(b.getSource())).append(WRAP);
 				}else{
 					sb.append(b.getSource()).append(WRAP);
 				}
 			}
 		}
-	}
-	
-	private boolean isNumber(char c){
-		return c>15&&c<26;
 	}
 }
